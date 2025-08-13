@@ -1,17 +1,29 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:mintocoin/Screens/home_screen.dart';
+import 'package:mintocoin/Screens/login_signup_screen.dart';
 import 'package:mintocoin/Screens/wallet_info_screen.dart';
 import 'package:mintocoin/Services/coin_service.dart';
 import 'package:mintocoin/Widgets/send_screen.dart';
 import 'package:sliding_clipped_nav_bar/sliding_clipped_nav_bar.dart';
 
 void main() {
-  runApp(const MintoCoinApp());
+  runApp(
+    const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: LoginSignupScreen(),
+    ),
+  );
 }
 
 class MintoCoinApp extends StatefulWidget {
-  const MintoCoinApp({super.key});
+  final String publicKey;
+  final String privateKey;
+  const MintoCoinApp({
+    super.key,
+    required this.publicKey,
+    required this.privateKey,
+  });
 
   @override
   State<MintoCoinApp> createState() => _MintoCoinAppState();
@@ -34,7 +46,8 @@ class _MintoCoinAppState extends State<MintoCoinApp> {
   void initState() {
     super.initState();
     controller = PageController();
-    _generateKeys();
+    publicKey = widget.publicKey;
+    privateKey = widget.privateKey;
   }
 
   @override

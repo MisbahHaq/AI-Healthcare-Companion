@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mintocoin/Screens/login_signup_screen.dart';
 
 class WalletInfoScreen extends StatefulWidget {
   final Map<String, int> balances;
@@ -21,6 +23,7 @@ class WalletInfoScreen extends StatefulWidget {
 
 class _WalletInfoScreenState extends State<WalletInfoScreen> {
   final TextEditingController amountCtrl = TextEditingController();
+  final storage = const FlutterSecureStorage();
   String selectedCoin = "";
 
   @override
@@ -46,6 +49,19 @@ class _WalletInfoScreenState extends State<WalletInfoScreen> {
     );
   }
 
+  Future<void> _logout() async {
+    // Clear stored keys and credentials
+    await storage.deleteAll();
+
+    // Navigate back to login/signup screen
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginSignupScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,6 +71,13 @@ class _WalletInfoScreenState extends State<WalletInfoScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text("Wallet Info", style: TextStyle(color: Colors.white)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+            tooltip: "Logout",
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
