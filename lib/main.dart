@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:mintocoin/Screens/home_screen.dart';
 import 'package:mintocoin/Screens/wallet_info_screen.dart';
@@ -57,8 +56,6 @@ class _MintoCoinAppState extends State<MintoCoinApp> {
       setState(() {
         balances[coin] = balances[coin]! - amount;
       });
-
-      // Optional: log for debugging
       print("Sent $amount $coin to receiver: $receiverKey");
     } else {
       print("Not enough $coin to send.");
@@ -86,11 +83,19 @@ class _MintoCoinAppState extends State<MintoCoinApp> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorSchemeSeed: Colors.green, // Material 3 color theme
+        useMaterial3: true,
+      ),
       home: Scaffold(
         body: pages[currentIndex],
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: currentIndex,
           onTap: (i) => setState(() => currentIndex = i),
+          selectedItemColor: Colors.green,
+          unselectedItemColor: Colors.grey,
+          showUnselectedLabels: true,
+          type: BottomNavigationBarType.fixed,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
             BottomNavigationBarItem(icon: Icon(Icons.send), label: "Send"),

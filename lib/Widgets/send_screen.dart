@@ -45,38 +45,95 @@ class _SendScreenState extends State<SendScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Send Coins")),
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text(
+          "Send Coins",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             DropdownButtonFormField<String>(
               value: selectedCoin,
+              dropdownColor: Colors.white,
+              iconEnabledColor: Colors.white,
               items:
                   widget.balances.keys
                       .map(
-                        (coin) =>
-                            DropdownMenuItem(value: coin, child: Text(coin)),
+                        (coin) => DropdownMenuItem(
+                          value: coin,
+                          child: Text(
+                            coin,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
                       )
                       .toList(),
               onChanged: (v) => setState(() => selectedCoin = v!),
-              decoration: const InputDecoration(labelText: "Select Coin"),
+              decoration: const InputDecoration(
+                labelText: "Select Coin",
+                labelStyle: TextStyle(color: Colors.white),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 1.2),
+                ),
+              ),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: amountCtrl,
-              decoration: const InputDecoration(labelText: "Amount"),
+              decoration: const InputDecoration(
+                labelText: "Amount",
+                labelStyle: TextStyle(color: Colors.white),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 1.2),
+                ),
+              ),
               keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: receiverCtrl,
               decoration: const InputDecoration(
                 labelText: "Receiver Public Key",
+                labelStyle: TextStyle(color: Colors.white),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 1),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 1.2),
+                ),
               ),
+              style: const TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(onPressed: sendCoin, child: const Text("Send")),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white, width: 1),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: sendCoin,
+                child: const Text(
+                  "Send",
+                  style: TextStyle(fontSize: 16, color: Colors.black),
+                ),
+              ),
+            ),
           ],
         ),
       ),

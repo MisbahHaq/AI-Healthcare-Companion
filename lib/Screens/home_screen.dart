@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:mintocoin/widgets/mining_button.dart';
 
 class HomeScreen extends StatelessWidget {
   final Map<String, int> balances;
@@ -11,57 +9,71 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("MintoCoin Mining")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            MiningButton(onPressed: onMine, isMining: false),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView(
-                children:
-                    balances.entries
-                        .map(
-                          (e) => ListTile(
-                            title: Text(e.key),
-                            trailing: Text("${e.value}"),
-                          ),
-                        )
-                        .toList(),
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Your Balances",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            SizedBox(height: 200, child: _buildChart()),
-          ],
-        ),
-      ),
-    );
-  }
+              const SizedBox(height: 20),
 
-  Widget _buildChart() {
-    return LineChart(
-      LineChartData(
-        gridData: FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        titlesData: FlTitlesData(show: false),
-        lineBarsData: [
-          LineChartBarData(
-            spots:
-                balances.values
-                    .toList()
-                    .asMap()
-                    .entries
-                    .map((e) => FlSpot(e.key.toDouble(), e.value.toDouble()))
-                    .toList(),
-            isCurved: true,
-            color: Colors.indigo,
-            barWidth: 3,
-            belowBarData: BarAreaData(
-              show: true,
-              color: Colors.indigo.withOpacity(0.3),
-            ),
+              // Minimal coin list
+              ...balances.entries.map(
+                (e) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        e.key,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        "${e.value}",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              // Minimal mine button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white, width: 1),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: onMine,
+                  child: const Text(
+                    "Mine Random Coin",
+                    style: TextStyle(fontSize: 16, color: Colors.black),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

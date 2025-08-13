@@ -49,27 +49,35 @@ class _WalletInfoScreenState extends State<WalletInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Wallet Info")),
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text("Wallet Info", style: TextStyle(color: Colors.white)),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
             // Keys Section
             const Text(
-              "Public Key:",
-              style: TextStyle(fontWeight: FontWeight.bold),
+              "Public Key",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Row(
               children: [
                 Expanded(
                   child: Text(
                     widget.publicKey,
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.copy),
+                  icon: const Icon(Icons.copy, color: Colors.white),
                   onPressed:
                       () => copyToClipboard(widget.publicKey, "Public Key"),
                 ),
@@ -77,60 +85,104 @@ class _WalletInfoScreenState extends State<WalletInfoScreen> {
             ),
             const SizedBox(height: 10),
             const Text(
-              "Private Key:",
-              style: TextStyle(fontWeight: FontWeight.bold),
+              "Private Key",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Row(
               children: [
                 Expanded(
                   child: Text(
                     widget.privateKey,
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.copy),
+                  icon: const Icon(Icons.copy, color: Colors.white),
                   onPressed:
                       () => copyToClipboard(widget.privateKey, "Private Key"),
                 ),
               ],
             ),
-            const Divider(height: 30),
+            const Divider(height: 30, color: Colors.white24),
 
             // Balances
             const Text(
-              "Balances:",
-              style: TextStyle(fontWeight: FontWeight.bold),
+              "Balances",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             ...widget.balances.entries.map(
-              (e) => ListTile(title: Text(e.key), trailing: Text("${e.value}")),
+              (e) => ListTile(
+                title: Text(e.key, style: const TextStyle(color: Colors.white)),
+                trailing: Text(
+                  "${e.value}",
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
             ),
-
-            const Divider(height: 30),
+            const Divider(height: 30, color: Colors.white24),
 
             // Add Money
             const Text(
               "Add Money",
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
+            const SizedBox(height: 10),
             DropdownButtonFormField<String>(
+              dropdownColor: Colors.black,
               value: selectedCoin,
               items:
                   widget.balances.keys
                       .map(
-                        (coin) =>
-                            DropdownMenuItem(value: coin, child: Text(coin)),
+                        (coin) => DropdownMenuItem(
+                          value: coin,
+                          child: Text(
+                            coin,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
                       )
                       .toList(),
               onChanged: (v) => setState(() => selectedCoin = v!),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white10,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              style: const TextStyle(color: Colors.white),
             ),
+            const SizedBox(height: 10),
             TextField(
               controller: amountCtrl,
-              decoration: const InputDecoration(labelText: "Amount"),
+              decoration: InputDecoration(
+                labelText: "Amount",
+                labelStyle: const TextStyle(color: Colors.white70),
+                filled: true,
+                fillColor: Colors.white10,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              style: const TextStyle(color: Colors.white),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 10),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
               onPressed: addMoney,
               child: const Text("Add to Wallet"),
             ),
