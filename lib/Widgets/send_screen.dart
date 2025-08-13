@@ -61,7 +61,7 @@ class _SendScreenState extends State<SendScreen> {
           children: [
             DropdownButtonFormField<String>(
               value: selectedCoin,
-              dropdownColor: Colors.white,
+              dropdownColor: Colors.black,
               iconEnabledColor: Colors.white,
               items:
                   widget.balances.keys
@@ -76,9 +76,12 @@ class _SendScreenState extends State<SendScreen> {
                       )
                       .toList(),
               onChanged: (v) => setState(() => selectedCoin = v!),
+              style: const TextStyle(color: Colors.white), // text inside field
               decoration: const InputDecoration(
                 labelText: "Select Coin",
                 labelStyle: TextStyle(color: Colors.white),
+                filled: true,
+                fillColor: Colors.black,
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.white, width: 1),
                 ),
@@ -87,6 +90,7 @@ class _SendScreenState extends State<SendScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 10),
             TextField(
               controller: amountCtrl,

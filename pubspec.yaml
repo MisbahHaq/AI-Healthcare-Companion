@@ -38,6 +38,10 @@ dependencies:
   pointycastle:
   provider:
   fl_chart: ^1.0.0
+  animated_bottom_navigation_bar: ^1.4.0
+  sliding_clipped_nav_bar:
+    git:
+      url: https://github.com/watery-desert/sliding_clipped_nav_bar
 
 dev_dependencies:
   flutter_test:
