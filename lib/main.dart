@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:mintocoin/Screens/home_screen.dart';
 import 'package:mintocoin/Screens/login_signup_screen.dart';
 import 'package:mintocoin/Screens/wallet_info_screen.dart';
@@ -7,7 +8,15 @@ import 'package:mintocoin/Services/coin_service.dart';
 import 'package:mintocoin/Widgets/send_screen.dart';
 import 'package:sliding_clipped_nav_bar/sliding_clipped_nav_bar.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Replace with your real publishable key
+  Stripe.publishableKey =
+      "pk_test_51RxsA0FuJcwry3pW8p6q4qZFh1er4GHAwY5Cv9b2pw5GzmJ8MuRhgYBOWBXKBS0GlfMVF32bKWdiNjJi3pmZBUh600EAVbOcaP";
+  Stripe.merchantIdentifier = "merchant.com.yourAppId"; // for Apple Pay
+  await Stripe.instance.applySettings();
+
   runApp(
     const MaterialApp(
       debugShowCheckedModeBanner: false,

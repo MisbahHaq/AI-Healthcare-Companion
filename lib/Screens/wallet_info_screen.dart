@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:mintocoin/Screens/login_signup_screen.dart';
 
 class WalletInfoScreen extends StatefulWidget {
@@ -39,21 +42,52 @@ class _WalletInfoScreenState extends State<WalletInfoScreen> {
     ).showSnackBar(SnackBar(content: Text("$label copied to clipboard")));
   }
 
-  void addMoney() {
+  /// ✅ Stripe Add Money Flow
+  Future<void> addMoney() async {
     final amount = int.tryParse(amountCtrl.text) ?? 0;
     if (amount <= 0) return;
-    widget.onAddMoney(selectedCoin, amount);
-    amountCtrl.clear();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Added $amount $selectedCoin to wallet")),
-    );
+
+    try {
+      // 1. Call your backend to create PaymentIntent
+      final url = Uri.parse(
+        "http://localhost:3000/create-payment-intent",
+      ); // 👈 change to your deployed backend
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"amount": amount * 100}), // amount in cents
+      );
+
+      final data = jsonDecode(response.body);
+      final clientSecret = data["clientSecret"];
+
+      // 2. Init Stripe PaymentSheet
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: clientSecret,
+          merchantDisplayName: "MintoCoin",
+        ),
+      );
+
+      // 3. Present payment sheet
+      await Stripe.instance.presentPaymentSheet();
+
+      // 4. On success → update wallet
+      widget.onAddMoney(selectedCoin, amount);
+      amountCtrl.clear();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("✅ Added $amount $selectedCoin to wallet")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("❌ Payment failed: $e")));
+    }
   }
 
   Future<void> _logout() async {
-    // Clear stored keys and credentials
     await storage.deleteAll();
-
-    // Navigate back to login/signup screen
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,

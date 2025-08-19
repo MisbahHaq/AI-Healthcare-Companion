@@ -44,6 +44,7 @@ dependencies:
       url: https://github.com/watery-desert/sliding_clipped_nav_bar
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^9.2.4
+  flutter_stripe: ^11.5.0
 
 dev_dependencies:
   flutter_test:
