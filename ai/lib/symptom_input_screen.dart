@@ -16,8 +16,49 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
   String _selectedSeverity = "Moderate";
   List<String> _recentSymptoms = [];
 
+  // Auto-suggest
+  List<String> commonSymptoms = [
+    "Fever",
+    "Cough",
+    "Headache",
+    "Chest pain",
+    "Sore throat",
+    "Fatigue",
+  ];
+  List<String> filteredSuggestions = [];
+
+  void _updateSuggestions(String input) {
+    setState(() {
+      filteredSuggestions =
+          commonSymptoms
+              .where(
+                (symptom) =>
+                    symptom.toLowerCase().contains(input.toLowerCase()),
+              )
+              .toList();
+    });
+  }
+
   // Store all responses with show/hide state
   List<_ResponseItem> _responses = [];
+
+  // Clean AI response
+  String _cleanResponse(String text) {
+    text = text.replaceAll(
+      RegExp(
+        r'[\u{1F300}-\u{1F6FF}'
+        r'\u{1F900}-\u{1F9FF}'
+        r'\u{1F1E0}-\u{1F1FF}'
+        r'\u{2600}-\u{26FF}'
+        r'\u{2700}-\u{27BF}]',
+        unicode: true,
+      ),
+      '',
+    );
+    text = text.replaceAll(RegExp(r'^\s*#{1,6}\s*', multiLine: true), '');
+    text = text.replaceAll(RegExp(r'\*+'), '');
+    return text.trim();
+  }
 
   void _analyzeSymptoms() async {
     if (_controller.text.trim().isEmpty) {
@@ -35,14 +76,31 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
       final result = await AiSecondOpinionService.analyze(
         "${_controller.text} (Severity: $_selectedSeverity)",
       );
+      final cleanResult = _cleanResponse(result);
 
       setState(() {
-        _responses.insert(0, _ResponseItem(result, true)); // show by default
+        _responses.insert(
+          0,
+          _ResponseItem(
+            question: _controller.text,
+            text: cleanResult,
+            timestamp: DateTime.now(),
+            severity: _selectedSeverity,
+          ),
+        );
         _addToHistory(_controller.text);
       });
     } catch (e) {
       setState(() {
-        _responses.insert(0, _ResponseItem("⚠️ Error: $e", true));
+        _responses.insert(
+          0,
+          _ResponseItem(
+            question: "Error",
+            text: "⚠️ Error: $e",
+            timestamp: DateTime.now(),
+            severity: "Moderate",
+          ),
+        );
       });
     } finally {
       setState(() => _loading = false);
@@ -58,6 +116,7 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
 
   void _clearInput() {
     _controller.clear();
+    filteredSuggestions.clear();
     setState(() {});
   }
 
@@ -70,6 +129,42 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
 
   void _shareResponse(String text) {
     Share.share(text);
+  }
+
+  Color _getSeverityColor(String severity) {
+    switch (severity) {
+      case "Mild":
+        return Colors.green.shade100;
+      case "Moderate":
+        return Colors.orange.shade100;
+      case "Severe":
+        return Colors.red.shade100;
+      default:
+        return Colors.grey.shade100;
+    }
+  }
+
+  // Highlight keywords in AI response
+  TextSpan _highlightKeywords(String text) {
+    List<String> keywords = ["fever", "urgent", "pain"];
+    return TextSpan(
+      children:
+          text.split(' ').map((word) {
+            if (keywords.contains(word.toLowerCase())) {
+              return TextSpan(
+                text: "$word ",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              );
+            }
+            return TextSpan(
+              text: "$word ",
+              style: const TextStyle(color: Colors.black87),
+            );
+          }).toList(),
+    );
   }
 
   @override
@@ -129,42 +224,63 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Input box with clear button
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Stack(
-                  children: [
-                    TextField(
-                      controller: _controller,
-                      maxLines: 4,
-                      onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        hintText: "e.g., fever, cough, chest pain",
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.all(16),
-                      ),
-                    ),
-                    if (_controller.text.isNotEmpty)
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.grey),
-                          onPressed: _clearInput,
+              // Input box and suggestions
+              Column(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
                         ),
-                      ),
-                  ],
-                ),
+                      ],
+                    ),
+                    child: Stack(
+                      children: [
+                        TextField(
+                          controller: _controller,
+                          maxLines: 4,
+                          onChanged: (val) {
+                            _updateSuggestions(val);
+                            setState(() {});
+                          },
+                          readOnly: _loading,
+                          decoration: InputDecoration(
+                            hintText: "e.g., fever, cough, chest pain",
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.all(16),
+                            filled: true,
+                            fillColor:
+                                _loading ? Colors.grey.shade200 : Colors.white,
+                          ),
+                        ),
+                        if (_controller.text.isNotEmpty)
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: IconButton(
+                              icon: const Icon(Icons.clear, color: Colors.grey),
+                              onPressed: _clearInput,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  ...filteredSuggestions.map(
+                    (s) => ListTile(
+                      title: Text(s),
+                      onTap: () {
+                        _controller.text = s;
+                        filteredSuggestions.clear();
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
 
@@ -194,12 +310,19 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
                   spacing: 6,
                   children:
                       _recentSymptoms.map((symptom) {
-                        return ActionChip(
-                          label: Text(symptom),
-                          onPressed: () {
-                            _controller.text = symptom;
+                        return Dismissible(
+                          key: Key(symptom),
+                          onDismissed: (_) {
+                            _recentSymptoms.remove(symptom);
                             setState(() {});
                           },
+                          child: ActionChip(
+                            label: Text(symptom),
+                            onPressed: () {
+                              _controller.text = symptom;
+                              setState(() {});
+                            },
+                          ),
                         );
                       }).toList(),
                 ),
@@ -234,8 +357,7 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
                   ),
               const SizedBox(height: 24),
 
-              // Response cards with show/hide toggle
-              // ...[keep imports and class definitions above the build method the same]
+              // Response cards
               Column(
                 children:
                     _responses.map((resp) {
@@ -244,7 +366,7 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
                         margin: const EdgeInsets.only(bottom: 16),
                         padding: const EdgeInsets.all(18),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: _getSeverityColor(resp.severity),
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
@@ -256,15 +378,12 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
                         ),
                         child: Column(
                           children: [
-                            // Show/Hide toggle
                             GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  // Collapse all other responses
                                   for (var r in _responses) {
                                     if (r != resp) r.show = false;
                                   }
-                                  // Toggle the tapped response
                                   resp.show = !resp.show;
                                 });
                               },
@@ -272,13 +391,25 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
-                                    "AI Response",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                  Expanded(
+                                    child: Text(
+                                      resp.question.length > 30
+                                          ? '${resp.question.substring(0, 30)}...'
+                                          : resp.question,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
                                     ),
                                   ),
+                                  Text(
+                                    "${resp.timestamp.hour}:${resp.timestamp.minute}",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
                                   Icon(
                                     resp.show
                                         ? Icons.keyboard_arrow_up
@@ -288,79 +419,95 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
                                 ],
                               ),
                             ),
-
-                            if (resp.show) ...[
-                              const SizedBox(height: 12),
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height * 0.5,
-                                ),
-                                child: SingleChildScrollView(
-                                  child: Text(
-                                    resp.text,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      height: 1.5,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const Divider(),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                            AnimatedCrossFade(
+                              firstChild: const SizedBox.shrink(),
+                              secondChild: Column(
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.copy,
-                                      color: Colors.teal,
+                                  const SizedBox(height: 12),
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.teal.shade50,
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    onPressed: () => _copyResponse(resp.text),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.share,
-                                      color: Colors.teal,
-                                    ),
-                                    onPressed: () => _shareResponse(resp.text),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.thumb_up,
-                                      color: Colors.green,
-                                    ),
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            "👍 Thanks for feedback!",
-                                          ),
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxHeight:
+                                            MediaQuery.of(context).size.height *
+                                            0.5,
+                                      ),
+                                      child: SingleChildScrollView(
+                                        child: RichText(
+                                          text: _highlightKeywords(resp.text),
                                         ),
-                                      );
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.thumb_down,
-                                      color: Colors.red,
+                                      ),
                                     ),
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text("👎 Feedback noted"),
+                                  ),
+                                  const Divider(),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.copy,
+                                          color: Colors.teal,
                                         ),
-                                      );
-                                    },
+                                        onPressed:
+                                            () => _copyResponse(resp.text),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.share,
+                                          color: Colors.teal,
+                                        ),
+                                        onPressed:
+                                            () => _shareResponse(resp.text),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.thumb_up,
+                                          color: Colors.green,
+                                        ),
+                                        onPressed: () {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                "👍 Thanks for feedback!",
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.thumb_down,
+                                          color: Colors.red,
+                                        ),
+                                        onPressed: () {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                "👎 Feedback noted",
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
+                              crossFadeState:
+                                  resp.show
+                                      ? CrossFadeState.showSecond
+                                      : CrossFadeState.showFirst,
+                              duration: const Duration(milliseconds: 300),
+                            ),
                           ],
                         ),
                       );
@@ -397,9 +544,22 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
   }
 }
 
-// Model class for each response
+// Model class
 class _ResponseItem {
+  String question;
   String text;
+  DateTime timestamp;
+  String severity;
   bool show;
-  _ResponseItem(this.text, this.show);
+  String nextStep; // e.g., "See a doctor soon"
+  double confidence; // 0.0 - 1.0
+  _ResponseItem({
+    required this.question,
+    required this.text,
+    required this.timestamp,
+    required this.severity,
+    this.show = true,
+    this.nextStep = "",
+    this.confidence = 0.0,
+  });
 }
