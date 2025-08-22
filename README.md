@@ -9,7 +9,7 @@ Always consult a licensed medical professional.
 
 ---
 
-## ✨ Features
+## Features
 - Enter symptoms and get an AI-powered **second opinion**
 - Upload medical reports (PDFs, scans, etc.)
 - AI suggestions using **OpenRouter API**
