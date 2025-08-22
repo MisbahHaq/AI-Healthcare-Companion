@@ -1,4 +1,4 @@
-# AI Second Opinion (Flutter App)
+# SymptomAI (Flutter App)
 
 An AI-powered mobile application built with **Flutter** that provides **second opinions on medical treatments**.  
 This app is designed for **rural areas and communities** where access to medical specialists is limited.  
