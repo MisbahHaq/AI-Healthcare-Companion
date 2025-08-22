@@ -256,6 +256,7 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: _darkMode ? ThemeData.dark() : ThemeData.light(),
       home: Scaffold(
         backgroundColor:
@@ -269,10 +270,39 @@ class _SymptomInputScreenState extends State<SymptomInputScreen> {
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
           ),
           actions: [
-            Switch(
-              value: _darkMode,
-              onChanged: (val) => setState(() => _darkMode = val),
-              activeColor: Colors.yellowAccent,
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: GestureDetector(
+                onTap: () {
+                  setState(() => _darkMode = !_darkMode);
+                },
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 500),
+                  transitionBuilder: (child, animation) {
+                    return RotationTransition(
+                      turns: Tween<double>(
+                        begin: 0.75,
+                        end: 1,
+                      ).animate(animation),
+                      child: FadeTransition(opacity: animation, child: child),
+                    );
+                  },
+                  child:
+                      _darkMode
+                          ? const Icon(
+                            Icons.nights_stay, // moon icon
+                            key: ValueKey('moon'),
+                            color: Colors.yellowAccent,
+                            size: 28,
+                          )
+                          : const Icon(
+                            Icons.wb_sunny, // sun icon
+                            key: ValueKey('sun'),
+                            color: Colors.orange,
+                            size: 28,
+                          ),
+                ),
+              ),
             ),
           ],
         ),
